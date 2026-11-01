@@ -1,0 +1,6 @@
+{
+  "name": "Atelier d'Arles — Pomodoro & Từ Vựng Van Gogh",
+  "description": "Không gian tập trung Pomodoro kết hợp học từ vựng tiếng Anh theo phương pháp lặp lại ngắt quãng (Spaced Repetition SM-2), lấy cảm hứng từ hội họa Vincent van Gogh.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
