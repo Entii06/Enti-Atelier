@@ -14,6 +14,7 @@ import {
 import { VocabularyLibrary } from './components/VocabularyLibrary';
 import { SingleWordInput, WordModal } from './components/WordModal';
 import { WorkspaceNavBar } from './components/WorkspaceNavBar';
+import { GitHubLink } from './components/GitHubLink';
 import {
   BUILTIN_ARTWORKS,
   getBuiltinBackupImageSrc,
@@ -1594,14 +1595,16 @@ export default function App() {
         <div className="relative flex-1 flex flex-col bg-[var(--bg-canvas)] overflow-x-clip">
           {/* Synchronized Top Navigation Row (matches Pomodoro top-left 50% bar position & geometry) */}
           <header className="relative z-10 w-full px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 lg:pt-8 pb-4 border-b border-[var(--border-subtle)] bg-[var(--bg-canvas)]/90 backdrop-blur-xs">
-            <div className="flex flex-wrap lg:flex-nowrap items-center justify-between gap-4">
+            <div className="flex items-start lg:items-center justify-between gap-3 sm:gap-4">
               <WorkspaceNavBar
                 activeSection={activeSection}
                 dueCount={dueCards.length}
                 unplacedPiecesCount={unplacedPiecesCount}
                 onSelectSection={setActiveSection}
                 variant="surface"
+                className="flex-1 lg:flex-none"
               />
+              <GitHubLink />
             </div>
           </header>
 

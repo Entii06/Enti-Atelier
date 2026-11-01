@@ -50,6 +50,7 @@ import {
 } from '../utils/soundTracks';
 import { ArtworkImage } from './ArtworkImage';
 import { WorkspaceNavBar } from './WorkspaceNavBar';
+import { GitHubLink } from './GitHubLink';
 
 interface PomodoroStudioProps {
   artworks: ArtworkItem[];
@@ -565,6 +566,8 @@ export const PomodoroStudio: React.FC<PomodoroStudioProps> = ({
                 )}
               </button>
             </div>
+
+            {!zenMode && <GitHubLink variant="glass" />}
 
             {/* TOP-RIGHT POPOVER: SOUND & AMBIENT (with Add YouTube/MP3 & Delete) */}
             {openPopover === 'sound' && !zenMode && (
