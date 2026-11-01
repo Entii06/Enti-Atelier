@@ -180,4 +180,8 @@ Tên file phải khớp chính xác, bao gồm chữ hoa/chữ thường. Bướ
 
 ---
 
+## Ủng hộ dự án
+
+Nếu ENTI Atelier hữu ích với bạn, hãy ghé [trang ủng hộ](DONATE.md). Cảm ơn mọi người đã đồng hành, đóng góp và giúp dự án ngày càng hoàn thiện.
+
 © ENTI 2026. Các thư viện và tài nguyên bên thứ ba tuân theo giấy phép tương ứng của chúng.
