@@ -9,15 +9,15 @@ Nếu dự án giúp những giờ học của bạn trở nên dễ chịu và 
 Bạn có thể quét mã dưới đây bằng ứng dụng ngân hàng:
 
 <p align="center">
-  <img src="public/assets/donate/qr-mb.jpg" alt="Mã QR ủng hộ ENTI Atelier qua MB Bank — HUYNH LE NHUT TIEN" width="360" />
+  <img src="public/assets/donate/donate.png" alt="Mã QR ủng hộ ENTI Atelier qua MB Bank — HUYNH LE NHUT TIEN" width="360" />
 </p>
 
-| Thông tin | Nội dung |
-| --- | --- |
-| Ngân hàng | MB Bank — Ngân hàng Quân đội |
-| Chủ tài khoản | HUYNH LE NHUT TIEN |
-| Số tài khoản | `0351234567890` |
-| Nội dung chuyển khoản gợi ý | `Ung ho ENTI Atelier` |
+| Thông tin                   | Nội dung                     |
+| --------------------------- | ---------------------------- |
+| Ngân hàng                   | MB Bank — Ngân hàng Quân đội |
+| Chủ tài khoản               | HUYNH LE NHUT TIEN           |
+| Số tài khoản                | `0351234567890`              |
+| Nội dung chuyển khoản gợi ý | `Ung ho ENTI Atelier`        |
 
 Việc ủng hộ hoàn toàn tự nguyện, không có mức đóng góp tối thiểu. Bạn có thể tiếp tục sử dụng dự án mà không cần ủng hộ.
 

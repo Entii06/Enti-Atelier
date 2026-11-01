@@ -6,6 +6,8 @@ ENTI Atelier là không gian học tập kết hợp đồng hồ Pomodoro, họ
 
 Không cần tạo tài khoản. Dữ liệu học tập được lưu trên trình duyệt của bạn.
 
+[Ủng hộ ENTI Atelier](#ủng-hộ-dự-án)
+
 ## Tính năng
 
 ### Tập trung với Pomodoro
@@ -182,6 +184,41 @@ Tên file phải khớp chính xác, bao gồm chữ hoa/chữ thường. Bướ
 
 ## Ủng hộ dự án
 
-Nếu ENTI Atelier hữu ích với bạn, hãy ghé [trang ủng hộ](DONATE.md). Cảm ơn mọi người đã đồng hành, đóng góp và giúp dự án ngày càng hoàn thiện.
+Nếu ENTI Atelier giúp những giờ học của bạn trở nên dễ chịu và hiệu quả hơn, bạn có thể gửi một khoản ủng hộ tùy tâm. Sự đóng góp của bạn sẽ giúp tôi có thêm động lực chăm chút giao diện, sửa lỗi và phát triển những tính năng hữu ích cho mọi người.
+
+### Ủng hộ qua mã QR
+
+Bạn có thể quét mã dưới đây bằng ứng dụng ngân hàng:
+
+<p align="center">
+  <img src="public/assets/donate/donate.png" alt="Mã QR ủng hộ ENTI Atelier qua MB Bank — HUYNH LE NHUT TIEN" width="360" />
+</p>
+
+| Thông tin | Nội dung |
+| --- | --- |
+| Ngân hàng | MB Bank — Ngân hàng Quân đội |
+| Chủ tài khoản | HUYNH LE NHUT TIEN |
+| Số tài khoản | `0351234567890` |
+| Nội dung chuyển khoản gợi ý | `Ung ho ENTI Atelier` |
+
+Việc ủng hộ hoàn toàn tự nguyện, không có mức đóng góp tối thiểu. Bạn có thể tiếp tục sử dụng dự án mà không cần ủng hộ.
+
+### Lời cảm ơn
+
+**Cảm ơn tất cả mọi người đã và đang ủng hộ ENTI Atelier.**
+
+Mỗi khoản đóng góp, lời góp ý, lượt chia sẻ hay lần quay lại sử dụng đều có ý nghĩa với tôi. Nhờ sự đồng hành của mọi người, dự án có thêm cơ hội được hoàn thiện từng ngày.
+
+Nếu chưa thể ủng hộ bằng tài chính, bạn vẫn có thể giúp dự án bằng cách:
+
+- Chia sẻ ENTI Atelier với bạn bè đang cần một không gian học tập.
+- Báo lỗi hoặc đề xuất tính năng qua GitHub Issues.
+- Đóng góp mã nguồn hoặc dành một ngôi sao cho repository nếu thấy hữu ích.
+
+Chúc bạn luôn tìm được cảm hứng, giữ được nhịp học của riêng mình và có những giờ tập trung thật trọn vẹn.
+
+**ENTI — Cảm ơn vì đã đồng hành.**
+
+---
 
 © ENTI 2026. Các thư viện và tài nguyên bên thứ ba tuân theo giấy phép tương ứng của chúng.
