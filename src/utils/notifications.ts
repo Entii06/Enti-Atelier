@@ -172,7 +172,7 @@ export function sendTestBrowserNotification(artworkImageSrc?: string): boolean {
       ? artworkImageSrc
       : undefined;
 
-  return showSystemNotification("Atelier d'Arles · Thông báo đẩy đã bật", {
+  return showSystemNotification("Enti Atelier · Thông báo đẩy đã bật", {
     body: 'Bạn sẽ nhận được thông báo ngay khi hết phiên Pomodoro mà không cần mở sẵn tab trình duyệt.',
     icon: safeIcon,
     tag: 'atelier-arles-pomodoro-test',

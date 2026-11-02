@@ -19,7 +19,7 @@ export const BUILTIN_ARTWORKS: ArtworkItem[] = [
     accessionCode: 'USR-01',
     quoteVi:
       'Những điều vĩ đại được kết tinh từ chuỗi những ngày tập trung nhỏ bé bền bỉ nối tiếp nhau.',
-    quoteSource: "Atelier d'Arles · Tháng 1",
+    quoteSource: "Enti Atelier · Tháng 1",
     imageSrc: '/assets/artworks/Sunflower Field Under a Swirling Sky.jpg',
     backupImageSrc: sunflowersImg,
     imageScaleClass: 'scale-100',
@@ -38,7 +38,7 @@ export const BUILTIN_ARTWORKS: ArtworkItem[] = [
     accessionCode: 'USR-02',
     quoteVi:
       'Giữa tiếng sóng xanh và sắc hoa vàng ven biển, tâm trí tìm lại nhịp thở khoáng đạt đầu năm.',
-    quoteSource: "Atelier d'Arles · Tháng 2",
+    quoteSource: "Enti Atelier · Tháng 2",
     imageSrc: '/assets/artworks/Reclining Among Coastal Wildflowers.jpg',
     backupImageSrc: almondBlossomImg,
     imageScaleClass: 'scale-100',
@@ -57,7 +57,7 @@ export const BUILTIN_ARTWORKS: ArtworkItem[] = [
     accessionCode: 'USR-03',
     quoteVi:
       'Ngước nhìn vầng trăng khuyết trên cánh đồng tĩnh lặng luôn khơi dậy những ước mơ bền bỉ nhất.',
-    quoteSource: "Atelier d'Arles · Tháng 3",
+    quoteSource: "Enti Atelier · Tháng 3",
     imageSrc: '/assets/artworks/Van Gogh’s Crescent Moonfield.jpg',
     backupImageSrc: starryNightImg,
     imageScaleClass: 'scale-100',
@@ -76,7 +76,7 @@ export const BUILTIN_ARTWORKS: ArtworkItem[] = [
     accessionCode: 'USR-04',
     quoteVi:
       'Mỗi hành trình mới đều bắt đầu từ bước chân lặng lẽ mang theo khung vải và niềm say mê trên vai.',
-    quoteSource: "Atelier d'Arles · Tháng 4",
+    quoteSource: "Enti Atelier · Tháng 4",
     imageSrc: '/assets/artworks/Van Gogh Inspired Sunset Train Departure.jpg',
     backupImageSrc: PARIS_SUNSET_BALCONY_SRC,
     imageScaleClass: 'scale-100',
@@ -95,7 +95,7 @@ export const BUILTIN_ARTWORKS: ArtworkItem[] = [
     accessionCode: 'USR-05',
     quoteVi:
       'Giữa phố thị rực rỡ muôn ánh đèn, giữ vững sự tập trung riêng mình chính là bản lĩnh của người nghệ sĩ.',
-    quoteSource: "Atelier d'Arles · Tháng 5",
+    quoteSource: "Enti Atelier · Tháng 5",
     imageSrc: '/assets/artworks/Painter in a Van Gogh–Inspired Times Square.jpg',
     backupImageSrc: cafeTerraceImg,
     imageScaleClass: 'scale-100',
@@ -114,7 +114,7 @@ export const BUILTIN_ARTWORKS: ArtworkItem[] = [
     accessionCode: 'USR-06',
     quoteVi:
       'Khoảnh khắc tĩnh lặng trước giờ cất cánh là lúc ta nhìn rõ nhất đích đến của chặng đường phía trước.',
-    quoteSource: "Atelier d'Arles · Tháng 6",
+    quoteSource: "Enti Atelier · Tháng 6",
     imageSrc: '/assets/artworks/Twilight Traveler Beneath Vincent’s Wings.jpg',
     backupImageSrc: PAINTER_SWIRLING_SUNSET_SRC,
     imageScaleClass: 'scale-100',
@@ -133,7 +133,7 @@ export const BUILTIN_ARTWORKS: ArtworkItem[] = [
     accessionCode: 'USR-07',
     quoteVi:
       'Dừng lại bên thành cầu ngắm mặt nước chiều êm ả để lòng lắng sâu trước phiên học mới.',
-    quoteSource: "Atelier d'Arles · Tháng 7",
+    quoteSource: "Enti Atelier · Tháng 7",
     imageSrc: '/assets/artworks/Pastel Van Gogh–Inspired Riverside Bridge.jpg',
     backupImageSrc: almondBlossomImg,
     imageScaleClass: 'scale-100',
@@ -152,7 +152,7 @@ export const BUILTIN_ARTWORKS: ArtworkItem[] = [
     accessionCode: 'USR-08',
     quoteVi:
       'Ánh đèn lồng ấm áp phản chiếu trên mặt sông đêm nhắc rằng sự tĩnh tại luôn tỏa sáng dịu dàng.',
-    quoteSource: "Atelier d'Arles · Tháng 8",
+    quoteSource: "Enti Atelier · Tháng 8",
     imageSrc: '/assets/artworks/Starry Night Rowboat Romance.jpg',
     backupImageSrc: starryNightImg,
     imageScaleClass: 'scale-100',
@@ -171,7 +171,7 @@ export const BUILTIN_ARTWORKS: ArtworkItem[] = [
     accessionCode: 'USR-09',
     quoteVi:
       'Khi giai điệu và sắc màu hòa quyện, mỗi ngày rèn luyện đều ngân vang như một khúc nhạc riêng.',
-    quoteSource: "Atelier d'Arles · Tháng 9",
+    quoteSource: "Enti Atelier · Tháng 9",
     imageSrc: '/assets/artworks/Sunflower Serenade Under Swirling Skies.jpg',
     backupImageSrc: sunflowersImg,
     imageScaleClass: 'scale-100',
@@ -190,7 +190,7 @@ export const BUILTIN_ARTWORKS: ArtworkItem[] = [
     accessionCode: 'USR-10',
     quoteVi:
       'Ban đêm thường sống động và giàu sắc thái hơn cả ban ngày nếu ta thực tâm quan sát từng vì sao.',
-    quoteSource: "Atelier d'Arles · Tháng 10",
+    quoteSource: "Enti Atelier · Tháng 10",
     imageSrc: '/assets/artworks/Starry Night.jpg',
     backupImageSrc: starryNightImg,
     imageScaleClass: 'scale-100',
@@ -209,7 +209,7 @@ export const BUILTIN_ARTWORKS: ArtworkItem[] = [
     accessionCode: 'USR-11',
     quoteVi:
       'Từ ban công lộng gió nhìn mặt trời nhuộm cam những mái nhà Paris, lòng biết ơn từng ngày bền bỉ đã qua.',
-    quoteSource: "Atelier d'Arles · Tháng 11",
+    quoteSource: "Enti Atelier · Tháng 11",
     imageSrc: PARIS_SUNSET_BALCONY_SRC,
     backupImageSrc: cafeTerraceImg,
     imageScaleClass: 'scale-100',
@@ -228,7 +228,7 @@ export const BUILTIN_ARTWORKS: ArtworkItem[] = [
     accessionCode: 'USR-12',
     quoteVi:
       'Trước mặt biển chiều rực lửa khép lại một năm dài, giá vẽ vẫn vững vàng đón từng nét cọ cuối năm.',
-    quoteSource: "Atelier d'Arles · Tháng 12",
+    quoteSource: "Enti Atelier · Tháng 12",
     imageSrc: PAINTER_SWIRLING_SUNSET_SRC,
     backupImageSrc: starryNightImg,
     imageScaleClass: 'scale-100',

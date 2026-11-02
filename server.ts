@@ -1749,7 +1749,7 @@ export async function createApp({
           quoteVi:
             art.quoteVi ||
             'Mỗi phiên tập trung yên tĩnh là một nét cọ bền bỉ trên hành trình của riêng bạn.',
-          quoteSource: art.quoteSource || "Atelier d'Arles",
+          quoteSource: art.quoteSource || "Enti Atelier",
           imageSrc: finalImageSrc,
           imageScaleClass: art.imageScaleClass || 'scale-100',
           fallbackBgClass:
@@ -1836,6 +1836,6 @@ export async function createApp({
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   void createApp({ production: process.argv.includes('--production') ? true : undefined })
     .then(app => app.listen(PORT, '0.0.0.0', () => {
-      console.log(`Atelier d'Arles server running on http://0.0.0.0:${PORT}`);
+      console.log(`Enti Atelier server running on http://0.0.0.0:${PORT}`);
     }));
 }

@@ -1055,7 +1055,7 @@ export default function App() {
 
       if (typeof document !== 'undefined' && document.hidden) {
         setBackgroundCompletionTitle(
-          `🔔 Hoàn thành phiên Tập trung! — Atelier d'Arles`
+          `🔔 Hoàn thành phiên Tập trung! — Enti Atelier`
         );
       }
     } else {
@@ -1078,7 +1078,7 @@ export default function App() {
 
       if (typeof document !== 'undefined' && document.hidden) {
         setBackgroundCompletionTitle(
-          `🔔 Hết giờ nghỉ · Sẵn sàng tập trung! — Atelier d'Arles`
+          `🔔 Hết giờ nghỉ · Sẵn sàng tập trung! — Enti Atelier`
         );
       }
     }
@@ -1125,7 +1125,7 @@ export default function App() {
     if (!isRunning) {
       document.title =
         backgroundCompletionTitle ||
-        "Atelier d'Arles — Pomodoro & Từ Vựng Van Gogh";
+        "Enti Atelier";
       return;
     }
     const mins = String(Math.floor(secondsLeft / 60)).padStart(2, '0');
@@ -1136,7 +1136,7 @@ export default function App() {
         : pomoMode === 'short_break'
         ? 'Nghỉ ngắn'
         : 'Nghỉ dài';
-    document.title = `${mins}:${secs} · ${modeText} — Atelier d'Arles`;
+    document.title = `${mins}:${secs} · ${modeText} — Enti Atelier`;
   }, [isRunning, secondsLeft, pomoMode, backgroundCompletionTitle]);
 
   const handleToggleRun = () => {

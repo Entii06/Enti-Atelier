@@ -55,7 +55,7 @@ export const WorkspaceNavBar: React.FC<WorkspaceNavBarProps> = ({
             isGlass ? 'text-white' : 'text-[var(--text-primary)]'
           }`}
         >
-          Atelier d&apos;Arles
+          Enti Atelier
         </button>
 
         <span
