@@ -51,6 +51,7 @@ import {
 import { ArtworkImage } from './ArtworkImage';
 import { WorkspaceNavBar } from './WorkspaceNavBar';
 import { GitHubLink } from './GitHubLink';
+import { FacebookLink } from './FacebookLink';
 
 interface PomodoroStudioProps {
   artworks: ArtworkItem[];
@@ -116,6 +117,21 @@ type ActiveCornerPopover =
 
 const TIMER_OFFSET_STORAGE_KEY = 'atelier_arles_timer_offset_v1';
 const BRIGHTNESS_STORAGE_KEY = 'atelier_arles_brightness_v1';
+const TIMER_SCALE_STORAGE_KEY = 'atelier_arles_timer_scale_v1';
+
+function normalizeTimerScale(value: number): number {
+  if (!Number.isFinite(value)) return 100;
+  return Math.round(Math.max(60, Math.min(150, value)) / 5) * 5;
+}
+
+function loadSavedTimerScale(): number {
+  try {
+    const raw = workspaceStorage.getItem(TIMER_SCALE_STORAGE_KEY);
+    return raw ? normalizeTimerScale(Number(JSON.parse(raw))) : 100;
+  } catch {
+    return 100;
+  }
+}
 
 const BRIGHTNESS_CLASS_MAP: Record<number, string> = {
   20: 'brightness-[0.20]',
@@ -246,6 +262,10 @@ export const PomodoroStudio: React.FC<PomodoroStudioProps> = ({
 
   const hudContainerRef = useRef<HTMLDivElement | null>(null);
   const timerBoxRef = useRef<HTMLDivElement | null>(null);
+  const timerContentRef = useRef<HTMLDivElement | null>(null);
+  const [timerScale, setTimerScale] = useState(loadSavedTimerScale);
+  const [maximumTimerScale, setMaximumTimerScale] = useState(150);
+  const effectiveTimerScale = Math.min(timerScale, maximumTimerScale);
   const dragControls = useDragControls();
   const [initialOffset, setInitialOffset] = useState<{ x: number; y: number }>(
     () => loadSavedTimerOffset()
@@ -257,6 +277,32 @@ export const PomodoroStudio: React.FC<PomodoroStudioProps> = ({
   const [imageBrightness, setImageBrightness] = useState<number>(() =>
     loadSavedBrightness()
   );
+
+  useEffect(() => {
+    const content = timerContentRef.current;
+    if (!content) return;
+    const updateLimit = () => {
+      const zoom = Number(window.getComputedStyle(content).zoom) || 1;
+      const naturalWidth = content.getBoundingClientRect().width / zoom;
+      if (naturalWidth <= 0) return;
+      const fittingScale = Math.floor(((window.innerWidth - 64) / naturalWidth) * 20) * 5;
+      setMaximumTimerScale(Math.max(60, Math.min(150, fittingScale)));
+    };
+    updateLimit();
+    const observer = new ResizeObserver(updateLimit);
+    observer.observe(content);
+    window.addEventListener('resize', updateLimit);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', updateLimit);
+    };
+  }, [dragResetKey]);
+
+  const handleTimerScaleChange = (value: number) => {
+    const next = normalizeTimerScale(value);
+    setTimerScale(next);
+    workspaceStorage.setItem(TIMER_SCALE_STORAGE_KEY, JSON.stringify(next));
+  };
 
   useEffect(() => {
     setConfirmDeleteActive(false);
@@ -511,7 +557,7 @@ export const PomodoroStudio: React.FC<PomodoroStudioProps> = ({
                     type="button"
                     onClick={() => togglePopover('settings')}
                     aria-expanded={openPopover === 'settings'}
-                    title="Tùy chỉnh thời gian Pomodoro"
+                    title="Tùy chỉnh đồng hồ Pomodoro"
                     className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-xl transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
                       openPopover === 'settings'
                         ? 'bg-white/20 text-white'
@@ -519,7 +565,7 @@ export const PomodoroStudio: React.FC<PomodoroStudioProps> = ({
                     }`}
                   >
                     <SlidersHorizontal className="w-3.5 h-3.5" />
-                    <span className="hidden md:inline">Thời gian</span>
+                    <span className="hidden md:inline">Đồng hồ</span>
                   </button>
                 </div>
               </>
@@ -567,7 +613,12 @@ export const PomodoroStudio: React.FC<PomodoroStudioProps> = ({
               </button>
             </div>
 
-            {!zenMode && <GitHubLink variant="glass" />}
+            {!zenMode && (
+              <>
+                <FacebookLink variant="glass" />
+                <GitHubLink variant="glass" />
+              </>
+            )}
 
             {/* TOP-RIGHT POPOVER: SOUND & AMBIENT (with Add YouTube/MP3 & Delete) */}
             {openPopover === 'sound' && !zenMode && (
@@ -891,10 +942,10 @@ export const PomodoroStudio: React.FC<PomodoroStudioProps> = ({
 
             {/* TOP-RIGHT POPOVER: POMODORO DURATION SETTINGS */}
             {openPopover === 'settings' && !zenMode && (
-              <div className="absolute right-0 top-14 w-72 rounded-2xl bg-stone-950/90 backdrop-blur-xl border border-white/20 p-4 shadow-2xl space-y-4 z-30">
+              <div className="absolute right-0 top-14 max-h-[65dvh] w-72 overflow-y-auto rounded-2xl bg-stone-950/90 backdrop-blur-xl border border-white/20 p-4 shadow-2xl space-y-4 z-30">
                 <div className="flex items-center justify-between">
                   <p className="text-xs font-semibold text-white">
-                    Tùy chỉnh thời lượng Pomodoro
+                    Tùy chỉnh đồng hồ Pomodoro
                   </p>
                   <button
                     type="button"
@@ -903,6 +954,34 @@ export const PomodoroStudio: React.FC<PomodoroStudioProps> = ({
                   >
                     <X className="w-4 h-4" />
                   </button>
+                </div>
+
+                <div className="space-y-2 border-b border-white/15 pb-4">
+                  <label htmlFor="timer-size-slider" className="flex items-center justify-between text-xs text-white/80">
+                    <span>Kích cỡ khung đồng hồ</span>
+                    <span className="font-mono tabular-nums text-amber-300">{effectiveTimerScale}%</span>
+                  </label>
+                  <input
+                    id="timer-size-slider"
+                    type="range"
+                    min={60}
+                    max={maximumTimerScale}
+                    step={5}
+                    value={effectiveTimerScale}
+                    onChange={(event) => handleTimerScaleChange(Number(event.target.value))}
+                    aria-valuetext={`${effectiveTimerScale}%`}
+                    className="w-full accent-amber-400 cursor-pointer"
+                  />
+                  <div className="flex items-center justify-between gap-2 text-[11px] text-white/60">
+                    <span>{maximumTimerScale < 150 ? 'Tự giới hạn để vừa màn hình' : 'Thu nhỏ hoặc phóng to cả cụm đồng hồ'}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleTimerScaleChange(100)}
+                      className="shrink-0 text-amber-300 underline hover:text-amber-200 cursor-pointer"
+                    >
+                      Mặc định
+                    </button>
+                  </div>
                 </div>
 
                 <div className="space-y-3">
@@ -1164,6 +1243,11 @@ export const PomodoroStudio: React.FC<PomodoroStudioProps> = ({
           onDragEnd={handleTimerDragEnd}
           className="relative z-20 self-center my-auto px-5 py-4 flex flex-col items-center justify-center text-center touch-none cursor-grab active:cursor-grabbing"
         >
+          <div
+            ref={timerContentRef}
+            style={{ zoom: effectiveTimerScale / 100 }}
+            className="flex w-max flex-col items-center justify-center"
+          >
           {/* Subtle Drag Grip + Reset-to-Center Action */}
           <div
             className={`mb-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-black/35 hover:bg-black/55 backdrop-blur-md border border-white/15 text-xs text-white/75 hover:text-white transition-all ${
@@ -1175,6 +1259,15 @@ export const PomodoroStudio: React.FC<PomodoroStudioProps> = ({
           >
             <GripHorizontal className="w-3.5 h-3.5 text-white/70" />
             <span className="text-[11px] tracking-wide">Kéo di chuyển</span>
+            <span className="text-white/25" aria-hidden="true">·</span>
+            <button
+              type="button"
+              onClick={() => togglePopover('settings')}
+              title="Tùy chỉnh kích cỡ khung đồng hồ"
+              className="text-[11px] font-medium text-amber-300 hover:text-amber-200 underline cursor-pointer"
+            >
+              Kích cỡ
+            </button>
             {hasMoved && (
               <>
                 <span className="text-white/25" aria-hidden="true">
@@ -1306,6 +1399,7 @@ export const PomodoroStudio: React.FC<PomodoroStudioProps> = ({
             >
               <SkipForward className="w-4 h-4" />
             </button>
+          </div>
           </div>
         </motion.div>
 

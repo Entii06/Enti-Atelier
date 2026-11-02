@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { motion, useAnimationControls, useReducedMotion } from 'motion/react';
 import {
   Volume2,
   Eye,
@@ -66,6 +67,10 @@ export const SpacedRepetitionStudy: React.FC<SpacedRepetitionStudyProps> = ({
   const [direction, setDirection] = useState<CardDirection>('en_to_vi');
   const [practiceAheadIds, setPracticeAheadIds] = useState<string[]>([]);
   const [isRevealed, setIsRevealed] = useState(false);
+  const [isFlipping, setIsFlipping] = useState(false);
+  const flipControls = useAnimationControls();
+  const prefersReducedMotion = useReducedMotion();
+  const flipRequestRef = useRef(0);
   const [typedAnswer, setTypedAnswer] = useState('');
   const [typingChecked, setTypingChecked] = useState<null | boolean>(null);
 
@@ -82,6 +87,9 @@ export const SpacedRepetitionStudy: React.FC<SpacedRepetitionStudyProps> = ({
   }, [dueCards, practiceAheadIds, cards]);
 
   const currentCard: VocabCard | undefined = activeQueue[0];
+  const cardContainerRef = useRef<HTMLDivElement>(null);
+  const ratingControlsRef = useRef<HTMLDivElement>(null);
+  const previousCardIdRef = useRef(currentCard?.id);
   const currentPos = currentCard
     ? normalizePartOfSpeechInput(currentCard.partOfSpeech, currentCard.word)
     : 'verb';
@@ -165,21 +173,78 @@ export const SpacedRepetitionStudy: React.FC<SpacedRepetitionStudyProps> = ({
     void playDictionaryPronunciation(currentCard.word, accent);
   };
 
+  const revealFlashcard = async () => {
+    if (isRevealed || isFlipping) return;
+    if (prefersReducedMotion) {
+      setIsRevealed(true);
+      return;
+    }
+
+    const request = ++flipRequestRef.current;
+    setIsFlipping(true);
+    await flipControls.start({ rotateY: 90, transition: { duration: 0.18, ease: 'easeIn' } });
+    if (request !== flipRequestRef.current) return;
+
+    // Swap the content while the card is edge-on so the answer turns into view.
+    setIsRevealed(true);
+    flipControls.set({ rotateY: -90 });
+    await flipControls.start({ rotateY: 0, transition: { duration: 0.22, ease: 'easeOut' } });
+    if (request === flipRequestRef.current) setIsFlipping(false);
+  };
+
   useEffect(() => {
+    flipRequestRef.current += 1;
+    flipControls.stop();
+    flipControls.set({ rotateY: 0 });
+    setIsFlipping(false);
     stopDictionaryPronunciation();
     setIsRevealed(false);
     setTypedAnswer('');
     setTypingChecked(null);
-  }, [currentCard?.id, studyMode, direction]);
+  }, [currentCard?.id, studyMode, direction, flipControls]);
+
+  useEffect(() => {
+    const previousId = previousCardIdRef.current;
+    previousCardIdRef.current = currentCard?.id;
+    if (!currentCard || previousId === currentCard.id) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      cardContainerRef.current?.scrollIntoView({
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+        block: 'start',
+      });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [currentCard?.id]);
+
+  useEffect(() => {
+    if (!isRevealed || isFlipping) return;
+
+    // Wait for the answer and rating buttons to be laid out before scrolling.
+    const frame = window.requestAnimationFrame(() => {
+      const controls = ratingControlsRef.current;
+      if (!controls) return;
+      const bounds = controls.getBoundingClientRect();
+      if (bounds.bottom <= window.innerHeight - 24 && bounds.top >= 0) return;
+
+      controls.scrollIntoView({
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+        block: 'end',
+      });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [isRevealed, isFlipping, currentCard?.id]);
 
   useEffect(() => {
     return () => {
+      flipRequestRef.current += 1;
+      flipControls.stop();
       stopDictionaryPronunciation();
     };
-  }, []);
+  }, [flipControls]);
 
   const handleGrade = (grade: RecallGrade) => {
-    if (!currentCard) return;
+    if (!currentCard || isFlipping) return;
     stopDictionaryPronunciation();
     if (dueCards.length === 0 && practiceAheadIds.length > 0) {
       setPracticeAheadIds((prev) => prev.filter((id) => id !== currentCard.id));
@@ -201,10 +266,11 @@ export const SpacedRepetitionStudy: React.FC<SpacedRepetitionStudyProps> = ({
           target.isContentEditable);
 
       if (isInput) return;
+      if (isFlipping) return;
 
       if (e.code === 'Space' && !isRevealed && studyMode === 'flashcard') {
         e.preventDefault();
-        setIsRevealed(true);
+        void revealFlashcard();
         return;
       }
 
@@ -426,7 +492,13 @@ export const SpacedRepetitionStudy: React.FC<SpacedRepetitionStudyProps> = ({
           </div>
         </div>
       ) : (
-        <div className="max-w-4xl mx-auto rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-strong)] overflow-hidden">
+        <motion.div
+          ref={cardContainerRef}
+          animate={flipControls}
+          aria-busy={isFlipping}
+          style={{ transformPerspective: 1600, backfaceVisibility: 'hidden', pointerEvents: isFlipping ? 'none' : undefined }}
+          className="max-w-4xl mx-auto rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-strong)] overflow-hidden scroll-mt-4"
+        >
           <div className="px-6 sm:px-8 py-4 border-b border-[var(--border-subtle)] flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--text-muted)]">
               <span className="font-mono tabular-nums text-[var(--accent)]">
@@ -605,11 +677,12 @@ export const SpacedRepetitionStudy: React.FC<SpacedRepetitionStudyProps> = ({
                     <div className="pt-8">
                       <button
                         type="button"
-                        onClick={() => setIsRevealed(true)}
+                        onClick={() => void revealFlashcard()}
+                        disabled={isFlipping}
                         className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold rounded-xl bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--accent-fg)] transition-colors whitespace-nowrap shrink-0 cursor-pointer"
                       >
                         <Eye className="w-4 h-4" />
-                        <span>Lật xem đáp án (Phím cách)</span>
+                        <span>{isFlipping ? 'Đang lật thẻ…' : 'Lật xem đáp án (Phím cách)'}</span>
                       </button>
                     </div>
                   )}
@@ -737,7 +810,7 @@ export const SpacedRepetitionStudy: React.FC<SpacedRepetitionStudyProps> = ({
               )}
 
               {isRevealed && (
-                <div className="mt-6 pt-5 border-t border-[var(--border-subtle)]">
+                <div ref={ratingControlsRef} className="mt-6 pt-5 border-t border-[var(--border-subtle)] scroll-mb-6">
                   <p className="text-xs text-[var(--text-muted)] mb-3">
                     {dueCards.length === 0
                       ? 'Luyện thêm không thay đổi lịch ôn. Đánh giá để ghi nhận lượt luyện:'
@@ -810,7 +883,7 @@ export const SpacedRepetitionStudy: React.FC<SpacedRepetitionStudyProps> = ({
               </span>
             </span>
           </div>
-        </div>
+        </motion.div>
       )}
     </section>
   );

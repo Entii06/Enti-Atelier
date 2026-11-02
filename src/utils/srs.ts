@@ -12,9 +12,12 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 export { previewNextIntervalLabel, isCardDue } from './scheduler';
 
 export function formatIntervalDays(days: number): string {
-  if (days <= 0) return 'Trong phiên';
+  if (!Number.isFinite(days) || days <= 0) return 'Trong phiên';
+  const minutes = Math.max(1, Math.round(days * 24 * 60));
+  if (minutes < 60) return `${minutes} phút`;
+  if (days < 1) return `${Number((minutes / 60).toFixed(1))} giờ`;
   if (days === 1) return '1 ngày';
-  if (days < 30) return `${days} ngày`;
+  if (days < 30) return `${Number(days.toFixed(1))} ngày`;
   if (days < 365) {
     const months = Number((days / 30).toFixed(1));
     return `${months} tháng`;
