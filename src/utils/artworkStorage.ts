@@ -1,4 +1,4 @@
-import { ArtworkItem } from '../types';
+import type { ArtworkItem } from '../types';
 
 const DB_NAME = 'atelier_arles_media_db';
 const DB_VERSION = 1;
@@ -22,24 +22,41 @@ function openMediaDB(): Promise<IDBDatabase> {
   });
 }
 
-export async function loadCustomArtworksFromDB(): Promise<ArtworkItem[]> {
+export async function loadCustomArtworksFromDB(strict = false): Promise<ArtworkItem[]> {
   try {
     const db = await openMediaDB();
     return await new Promise<ArtworkItem[]>((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, 'readonly');
       const store = tx.objectStore(STORE_NAME);
       const req = store.getAll();
-      req.onsuccess = () => {
+      tx.oncomplete = () => {
         const items = Array.isArray(req.result)
           ? (req.result as ArtworkItem[])
           : [];
+        db.close();
         resolve(items);
       };
-      req.onerror = () => reject(req.error);
+      tx.onabort = () => { db.close(); reject(tx.error); };
     });
-  } catch {
+  } catch (error) {
+    if (strict) throw error;
     return [];
   }
+}
+
+/** Restore missing images without replacing edits made in another tab. */
+export async function mergeCustomArtworksToDB(items: ArtworkItem[]): Promise<void> {
+  const db = await openMediaDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    for (const item of items) {
+      const request = store.get(item.id);
+      request.onsuccess = () => { if (!request.result) store.put(item); };
+    }
+    tx.oncomplete = () => { db.close(); resolve(); };
+    tx.onabort = () => { db.close(); reject(tx.error); };
+  });
 }
 
 export async function saveCustomArtworkToDB(item: ArtworkItem): Promise<void> {

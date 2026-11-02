@@ -7,6 +7,7 @@ import {
   RecallGrade,
   VocabCard,
 } from '../types';
+import { dictionaryCache } from './dictionaryCache';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 export { previewNextIntervalLabel, isCardDue } from './scheduler';
@@ -188,6 +189,15 @@ export interface DictionarySuggestion {
 }
 
 export async function lookupEnglishDictionary(
+  rawWord: string,
+  signal?: AbortSignal
+): Promise<DictionarySuggestion | null> {
+  const clean = rawWord.trim().replace(/\s+/g, ' ');
+  if (!clean) return null;
+  return dictionaryCache.lookup(clean, () => fetchEnglishDictionary(clean, signal), signal);
+}
+
+async function fetchEnglishDictionary(
   rawWord: string,
   signal?: AbortSignal
 ): Promise<DictionarySuggestion | null> {

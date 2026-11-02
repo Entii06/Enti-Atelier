@@ -80,3 +80,81 @@ test('unavailable storage reports failure instead of silently losing new data', 
   assert.equal(errors, 1);
   assert.equal(storage.getItem('atelier_arles_cards_v1'), 'new');
 });
+
+test('two stale tabs add, edit and delete against the latest committed collection', async () => {
+  const a = new WorkspaceStorage(indexedDB, undefined, undefined, 'concurrent-tabs');
+  const b = new WorkspaceStorage(indexedDB, undefined, undefined, 'concurrent-tabs');
+  await a.initialize();
+  await b.initialize();
+  type Card = { id: string; meaning: string; reviews: number };
+  const key = 'atelier_arles_cards_v1';
+  const initial: Card[] = [{ id: 'a', meaning: 'old', reviews: 0 }];
+  await a.updateJSON(key, initial, current => current);
+  await b.refresh();
+  await Promise.all([
+    a.updateJSON(key, initial, current => [...current, { id: 'b', meaning: 'B', reviews: 0 }]),
+    b.updateJSON(key, initial, current => [...current, { id: 'c', meaning: 'C', reviews: 0 }]),
+  ]);
+  await Promise.all([
+    a.updateJSON(key, initial, current => current.map(c => c.id === 'a' ? { ...c, meaning: 'new' } : c)),
+    b.updateJSON(key, initial, current => current.map(c => c.id === 'a' ? { ...c, reviews: c.reviews + 1 } : c)),
+  ]);
+  await a.updateJSON(key, initial, current => current.filter(c => c.id !== 'b'));
+  // b still has an older snapshot, but its next action cannot resurrect b.
+  await b.updateJSON(key, initial, current => [...current, { id: 'd', meaning: 'D', reviews: 0 }]);
+  let notifications = 0;
+  const unsubscribe = a.subscribe(() => notifications++);
+  await a.refresh();
+  const result = JSON.parse(a.getItem(key)!);
+  assert.deepEqual(result.map((c: Card) => c.id).sort(), ['a', 'c', 'd']);
+  assert.deepEqual(result[0], { id: 'a', meaning: 'new', reviews: 1 });
+  assert.equal(notifications, 1);
+  unsubscribe(); a.close(); b.close();
+});
+
+test('failed updater aborts and does not poison subsequent queued actions', async () => {
+  const storage = new WorkspaceStorage(indexedDB, undefined, () => {}, 'abort-update');
+  await storage.initialize();
+  await storage.updateJSON('count', 0, () => 1);
+  await assert.rejects(storage.updateJSON('count', 0, () => { throw new Error('bad action'); }));
+  assert.equal(storage.getItem('count'), '1');
+  await storage.updateJSON('count', 0, n => n + 1);
+  assert.equal(storage.getItem('count'), '2');
+  storage.close();
+});
+
+test('fallback updates read latest persisted values rather than a stale tab snapshot', async () => {
+  const legacy = legacyStorage();
+  const a = new WorkspaceStorage(undefined, legacy);
+  const b = new WorkspaceStorage(undefined, legacy);
+  await a.initialize(); await b.initialize();
+  await a.updateJSON('atelier_count', 0, n => n + 1);
+  await b.updateJSON('atelier_count', 0, n => n + 1);
+  await a.refresh();
+  assert.equal(a.getItem('atelier_count'), '2');
+});
+
+test('a committed write automatically refreshes another tab through BroadcastChannel', async () => {
+  const previousWindow = globalThis.window;
+  const previousDocument = globalThis.document;
+  Object.assign(globalThis, { window: new EventTarget(), document: new EventTarget() });
+  const a = new WorkspaceStorage(indexedDB, undefined, undefined, 'broadcast-tabs');
+  const b = new WorkspaceStorage(indexedDB, undefined, undefined, 'broadcast-tabs');
+  try {
+    await a.initialize(); await b.initialize();
+    let unsubscribe = () => {};
+    const changed = new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error('Other tab was not refreshed')), 2000);
+      unsubscribe = b.subscribe(() => {
+        if (b.getItem('atelier_count') === '1') { clearTimeout(timeout); resolve(); }
+      });
+    });
+    await a.updateJSON('atelier_count', 0, n => n + 1);
+    await changed;
+    unsubscribe();
+    assert.equal(b.getItem('atelier_count'), '1');
+  } finally {
+    a.close(); b.close();
+    Object.assign(globalThis, { window: previousWindow, document: previousDocument });
+  }
+});

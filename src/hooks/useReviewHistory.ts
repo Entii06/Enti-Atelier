@@ -27,6 +27,30 @@ export function useReviewHistory(legacyKey: string) {
   }, []);
 
   useEffect(() => {
+    let disposed = false;
+    const refresh = () => {
+      void loadReviewHistory().then(stored => {
+        if (disposed) return;
+        stored.forEach(log => savedIds.current.add(log.id));
+        setLogs(current => {
+          const merged = mergeReviewHistory(stored, current);
+          return merged.length === current.length && merged.every((log, i) => log.id === current[i].id) ? current : merged;
+        });
+      }).catch(() => {});
+    };
+    const channel = typeof BroadcastChannel === 'undefined' ? null : new BroadcastChannel('atelier-reviews');
+    if (channel) channel.onmessage = refresh;
+    window.addEventListener('focus', refresh);
+    window.addEventListener('atelier-reviews-changed', refresh);
+    return () => {
+      disposed = true;
+      channel?.close();
+      window.removeEventListener('focus', refresh);
+      window.removeEventListener('atelier-reviews-changed', refresh);
+    };
+  }, []);
+
+  useEffect(() => {
     if (storage === 'loading') return;
     const fallback = () => {
       try {

@@ -136,6 +136,28 @@ ENTI Atelier không có tài khoản đăng nhập trong website. Dữ liệu đ
 
 Tra từ, phát âm và phát nội dung trực tuyến cần gửi yêu cầu tới các dịch vụ bên ngoài. Ứng dụng không đồng bộ toàn bộ kho học tập lên máy chủ.
 
+### Bộ nhớ đệm từ điển và phát âm
+
+Sau lần tải thành công, ứng dụng lưu kết quả trong IndexedDB (`atelier_dictionary_cache_v1`) để những lần tra/nghe tiếp theo có thể dùng lại trên cùng hồ sơ trình duyệt và tên miền:
+
+- Kết quả tra từ đầy đủ: **7 ngày**, tối đa **500 mục**.
+- Gợi ý từ nguồn dự phòng chưa có nghĩa tiếng Việt: **1 giờ**, sau đó thử tải lại.
+- Âm thanh: **30 ngày**, tách riêng giọng **UK/US**, tối đa **300 tệp hoặc 50 MB**. Tệp trên 2 MB vẫn được phát nhưng không lưu vào cache.
+
+Cache tự loại mục hết hạn và các mục ít được dùng gần đây khi đạt giới hạn. Lỗi tra từ và yêu cầu đã hủy không được lưu. Nếu trình duyệt không cho phép dùng IndexedDB, tra từ và phát âm vẫn hoạt động qua API, kèm bộ nhớ tạm trong phiên hiện tại.
+
+Kho cache tách biệt với từ vựng và tiến độ học; loại dữ liệu cache không xóa các thẻ đã lưu. Những mục đã được cache và còn hạn có thể dùng lại khi mất mạng, nhưng lần tra từ mới hoặc tải âm thanh mới vẫn cần Internet.
+
+### Sao lưu và khôi phục dữ liệu
+
+Trong **Kho từ vựng → Sao lưu dữ liệu**, chọn **Xuất bản sao lưu** để tải tệp JSON gồm kho từ, trạng thái FSRS, lịch sử ôn tập, lịch sử Pomodoro còn lưu, tiến độ ghép tranh, ảnh tải lên và cài đặt. Cache từ điển/âm thanh có thể tải lại nên không nằm trong bản sao lưu.
+
+Chọn **Khôi phục**, kiểm tra ngày và số lượng dữ liệu, rồi chọn **Gộp và khôi phục**. Các mục hiện có được giữ lại; từ trùng ID giữ bản có lần ôn gần nhất mới hơn, ảnh trùng ID giữ ảnh hiện tại. Các tùy chọn giao diện/thời gian lấy từ tệp sao lưu. Sau khi hoàn tất, bấm **Tải lại trang** để áp dụng đầy đủ. Nhập lại cùng tệp không nhân đôi từ hay lịch sử.
+
+Dữ liệu nằm trên từng hồ sơ trình duyệt và từng tên miền, không tự đồng bộ qua thiết bị. Hãy xuất bản sao lưu trước khi xóa dữ liệu trình duyệt hoặc chuyển tên miền. Tệp có thể chứa ghi chú và ảnh cá nhân, nên giữ ở nơi an toàn.
+
+Các thao tác sửa kho từ, lịch sử Pomodoro và tiến độ ghép tranh được ghi bằng giao dịch đọc–cập nhật–ghi IndexedDB, đồng thời thông báo cho các tab khác. Cách này tránh việc một tab đang mở với dữ liệu cũ ghi đè toàn bộ kho từ của tab khác. Khi chỉnh cùng một trường, thay đổi được ghi sau cùng có hiệu lực; chỉnh các từ khác nhau được giữ lại.
+
 ## Cách hoạt động của lịch ôn
 
 FSRS-6 hiện sử dụng bộ tham số mặc định và mục tiêu ghi nhớ **90%**. Đây là mục tiêu của mô hình, không phải tỷ lệ nhớ được đảm bảo cho mọi người dùng.

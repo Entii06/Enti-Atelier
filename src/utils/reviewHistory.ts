@@ -33,7 +33,18 @@ export async function saveReviewHistory(logs: ReviewLogRecord[]) {
     const tx = db.transaction('reviews', 'readwrite');
     const store = tx.objectStore('reviews');
     for (const log of logs) store.put(log);
-    tx.oncomplete = () => { db.close(); resolve(); };
+    tx.oncomplete = () => {
+      db.close();
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('atelier-reviews-changed'));
+        if (typeof BroadcastChannel !== 'undefined') {
+          const channel = new BroadcastChannel('atelier-reviews');
+          channel.postMessage({ changed: true });
+          channel.close();
+        }
+      }
+      resolve();
+    };
     tx.onabort = () => { db.close(); reject(tx.error); };
   });
 }

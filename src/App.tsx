@@ -1,3 +1,5 @@
+import { useWorkspaceState } from './hooks/useWorkspaceState';
+import { BackupControls } from './components/BackupControls';
 import { workspaceStorage } from './utils/workspaceStorage';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Moon, Pause, Play, Sun } from 'lucide-react';
@@ -162,7 +164,7 @@ function hydrateArtworksWithIdbData(
 }
 
 export default function App() {
-  const [deletedBuiltinIds, setDeletedBuiltinIds] = useState<string[]>(() =>
+  const [deletedBuiltinIds, setDeletedBuiltinIds] = useWorkspaceState<string[]>(STORAGE_KEYS.DELETED_BUILTINS, () =>
     loadFromStorage<string[]>(STORAGE_KEYS.DELETED_BUILTINS, [])
   );
   const [serverManifest, setServerManifest] =
@@ -175,7 +177,7 @@ export default function App() {
   const [customArtworks, setCustomArtworks] = useState<ArtworkItem[]>([]);
   const [isArtworkModalOpen, setIsArtworkModalOpen] = useState(false);
 
-  const [activeTheme, setActiveTheme] = useState<PaintingThemeId>(() => {
+  const [activeTheme, setActiveTheme] = useWorkspaceState<PaintingThemeId>(STORAGE_KEYS.THEME, () => {
     const saved = loadFromStorage<string>(STORAGE_KEYS.THEME, '');
     if (saved) return saved;
     const cachedManifest = loadFromStorage<ServerDefaultArtworksManifest>(
@@ -191,7 +193,7 @@ export default function App() {
   });
 
   const [activeSection, setActiveSection] = useState<NavSection>('pomodoro');
-  const [workspaceColorMode, setWorkspaceColorMode] = useState<'dark' | 'light'>(
+  const [workspaceColorMode, setWorkspaceColorMode] = useWorkspaceState<'dark' | 'light'>(STORAGE_KEYS.WORKSPACE_COLOR_MODE,
     () => {
       const saved = loadFromStorage<string>(
         STORAGE_KEYS.WORKSPACE_COLOR_MODE,
@@ -201,7 +203,7 @@ export default function App() {
     }
   );
 
-  const [cards, setCards] = useState<VocabCard[]>(() => {
+  const [cards, setCards] = useWorkspaceState<VocabCard[]>(STORAGE_KEYS.CARDS, () => {
     const raw = loadFromStorage<VocabCard[]>(
       STORAGE_KEYS.CARDS,
       createStarterDeck()
@@ -218,9 +220,9 @@ export default function App() {
         paintingMotif: syncedMotif,
       };
     });
-  });
+  }, latest => latest.map(card => normalizeSchedule(card)));
 
-  const [pomodoroSettings, setPomodoroSettings] = useState<PomodoroSettings>(
+  const [pomodoroSettings, setPomodoroSettings] = useWorkspaceState<PomodoroSettings>(STORAGE_KEYS.POMO_SETTINGS,
     () => ({
       ...DEFAULT_POMODORO_SETTINGS,
       ...loadFromStorage<Partial<PomodoroSettings>>(
@@ -230,19 +232,19 @@ export default function App() {
     })
   );
 
-  const [pomodoroHistory, setPomodoroHistory] = useState<
+  const [pomodoroHistory, setPomodoroHistory] = useWorkspaceState<
     PomodoroSessionRecord[]
-  >(() =>
+  >(STORAGE_KEYS.POMO_HISTORY, () =>
     loadFromStorage<PomodoroSessionRecord[]>(STORAGE_KEYS.POMO_HISTORY, [])
   );
 
   const [reviewLogs, setReviewLogs, reviewStorageError] = useReviewHistory(STORAGE_KEYS.REVIEW_LOGS);
 
-  const [intention, setIntention] = useState<string>(() =>
+  const [intention, setIntention] = useWorkspaceState<string>(STORAGE_KEYS.INTENTION, () =>
     loadFromStorage<string>(STORAGE_KEYS.INTENTION, '')
   );
 
-  const [puzzleState, setPuzzleState] = useState<ArtworkPuzzleState>(() => {
+  const [puzzleState, setPuzzleState] = useWorkspaceState<ArtworkPuzzleState>(STORAGE_KEYS.ARTWORK_PUZZLE, () => {
     const initialDefaultPuzzleId =
       getCurrentMonthArtworkId(BUILTIN_ARTWORKS) ||
       activeTheme ||
@@ -262,6 +264,9 @@ export default function App() {
       initialPieceMap
     );
     return applyDailyLoginCheckIn(sanitized, getLocalDateKey()).nextState;
+  }, latest => {
+    const pieceCounts = Object.fromEntries(buildArtworkMonthMetaList(BUILTIN_ARTWORKS).map(meta => [meta.artworkId, meta.pieceCount]));
+    return sanitizePuzzleState(latest, getCurrentMonthArtworkId(BUILTIN_ARTWORKS) || activeTheme, pieceCounts);
   });
 
   // Pomodoro runtime state
@@ -271,13 +276,13 @@ export default function App() {
   );
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [ambientType, setAmbientType] = useState<AmbientSoundType>('off');
-  const [customSoundTracks, setCustomSoundTracks] = useState<SoundTrack[]>(() =>
+  const [customSoundTracks, setCustomSoundTracks] = useWorkspaceState<SoundTrack[]>(STORAGE_KEYS.CUSTOM_SOUNDS, () =>
     loadFromStorage<SoundTrack[]>(STORAGE_KEYS.CUSTOM_SOUNDS, [])
   );
-  const [deletedBuiltinSoundIds, setDeletedBuiltinSoundIds] = useState<
+  const [deletedBuiltinSoundIds, setDeletedBuiltinSoundIds] = useWorkspaceState<
     string[]
-  >(() => loadFromStorage<string[]>(STORAGE_KEYS.DELETED_BUILTIN_SOUNDS, []));
-  const [ambientVolume, setAmbientVolume] = useState<number>(() =>
+  >(STORAGE_KEYS.DELETED_BUILTIN_SOUNDS, () => loadFromStorage<string[]>(STORAGE_KEYS.DELETED_BUILTIN_SOUNDS, []));
+  const [ambientVolume, setAmbientVolume] = useWorkspaceState<number>(STORAGE_KEYS.AMBIENT_VOLUME, () =>
     loadFromStorage<number>(STORAGE_KEYS.AMBIENT_VOLUME, 0.5)
   );
   const [showYoutubeMiniPlayer, setShowYoutubeMiniPlayer] =
@@ -565,17 +570,7 @@ export default function App() {
     }
   }, [artworks, puzzleState.selectedArtworkId]);
 
-  // Persist puzzle state and check daily login rollover at midnight or tab focus
-  useEffect(() => {
-    try {
-      workspaceStorage.setItem(
-        STORAGE_KEYS.ARTWORK_PUZZLE,
-        JSON.stringify(puzzleState)
-      );
-    } catch {
-      // Persistent write errors are reported by workspaceStorage.
-    }
-  }, [puzzleState]);
+  // Check daily login rollover at midnight or tab focus
 
   const puzzleStateRef = useRef<ArtworkPuzzleState>(puzzleState);
   puzzleStateRef.current = puzzleState;
@@ -589,7 +584,7 @@ export default function App() {
       );
       if (newlyCheckedInToday) {
         puzzleStateRef.current = nextState;
-        setPuzzleState(nextState);
+        setPuzzleState(prev => applyDailyLoginCheckIn(prev, todayKey).nextState);
         setBannerNotice(
           'Chào ngày mới! Bạn vừa nhận +1 mảnh ghép hôm nay trong Kho ảnh.'
         );
@@ -602,6 +597,7 @@ export default function App() {
       }
     };
 
+    setPuzzleState(prev => applyDailyLoginCheckIn(prev, getLocalDateKey()).nextState);
     window.addEventListener('focus', syncDailyCheckIn);
     document.addEventListener('visibilitychange', handleVisibility);
     const intervalId = window.setInterval(syncDailyCheckIn, 60_000);
@@ -639,7 +635,10 @@ export default function App() {
       if (placedPieceIndex === null) return;
 
       puzzleStateRef.current = nextState;
-      setPuzzleState(nextState);
+      setPuzzleState(prev => placePieceOnArtwork(
+        prev, artworkId, monthMeta.pieceCount, monthMeta.monthNumber,
+        targetPieceIndex, getLocalDateKey()
+      ).nextState);
 
       if (pomodoroSettings.soundChimeEnabled) {
         playPiecePlaceChime();
@@ -700,39 +699,6 @@ export default function App() {
   useEffect(() => {
     try {
       workspaceStorage.setItem(
-        STORAGE_KEYS.THEME,
-        JSON.stringify(activeTheme)
-      );
-    } catch {
-      // Persistent write errors are reported by workspaceStorage.
-    }
-  }, [activeTheme]);
-
-  useEffect(() => {
-    try {
-      workspaceStorage.setItem(
-        STORAGE_KEYS.WORKSPACE_COLOR_MODE,
-        JSON.stringify(workspaceColorMode)
-      );
-    } catch {
-      // Persistent write errors are reported by workspaceStorage.
-    }
-  }, [workspaceColorMode]);
-
-  useEffect(() => {
-    try {
-      workspaceStorage.setItem(
-        STORAGE_KEYS.DELETED_BUILTINS,
-        JSON.stringify(deletedBuiltinIds)
-      );
-    } catch {
-      // Persistent write errors are reported by workspaceStorage.
-    }
-  }, [deletedBuiltinIds]);
-
-  useEffect(() => {
-    try {
-      workspaceStorage.setItem(
         STORAGE_KEYS.SERVER_DEFAULTS_CACHE,
         JSON.stringify(serverManifest)
       );
@@ -742,82 +708,8 @@ export default function App() {
   }, [serverManifest]);
 
   useEffect(() => {
-    try {
-      workspaceStorage.setItem(STORAGE_KEYS.CARDS, JSON.stringify(cards));
-    } catch {
-      // Persistent write errors are reported by workspaceStorage.
-    }
-  }, [cards]);
-
-  useEffect(() => {
-    try {
-      workspaceStorage.setItem(
-        STORAGE_KEYS.POMO_SETTINGS,
-        JSON.stringify(pomodoroSettings)
-      );
-    } catch {
-      // Persistent write errors are reported by workspaceStorage.
-    }
-  }, [pomodoroSettings]);
-
-  useEffect(() => {
-    try {
-      workspaceStorage.setItem(
-        STORAGE_KEYS.POMO_HISTORY,
-        JSON.stringify(pomodoroHistory)
-      );
-    } catch {
-      // Persistent write errors are reported by workspaceStorage.
-    }
-  }, [pomodoroHistory]);
-
-  useEffect(() => {
     if (reviewStorageError) setBannerNotice(reviewStorageError);
   }, [reviewStorageError]);
-
-  useEffect(() => {
-    try {
-      workspaceStorage.setItem(
-        STORAGE_KEYS.INTENTION,
-        JSON.stringify(intention)
-      );
-    } catch {
-      // Persistent write errors are reported by workspaceStorage.
-    }
-  }, [intention]);
-
-  useEffect(() => {
-    try {
-      workspaceStorage.setItem(
-        STORAGE_KEYS.CUSTOM_SOUNDS,
-        JSON.stringify(customSoundTracks)
-      );
-    } catch {
-      // Persistent write errors are reported by workspaceStorage.
-    }
-  }, [customSoundTracks]);
-
-  useEffect(() => {
-    try {
-      workspaceStorage.setItem(
-        STORAGE_KEYS.DELETED_BUILTIN_SOUNDS,
-        JSON.stringify(deletedBuiltinSoundIds)
-      );
-    } catch {
-      // Persistent write errors are reported by workspaceStorage.
-    }
-  }, [deletedBuiltinSoundIds]);
-
-  useEffect(() => {
-    try {
-      workspaceStorage.setItem(
-        STORAGE_KEYS.AMBIENT_VOLUME,
-        JSON.stringify(ambientVolume)
-      );
-    } catch {
-      // Persistent write errors are reported by workspaceStorage.
-    }
-  }, [ambientVolume]);
 
   useEffect(() => {
     return () => {
@@ -1361,12 +1253,19 @@ export default function App() {
     ambientSound.setVolume(clamped);
   };
 
-  const handleRateCard = (cardId: string, grade: RecallGrade, practice = false) => {
+  const handleRateCard = async (cardId: string, grade: RecallGrade, practice = false) => {
     const now = Date.now();
-    const targetCard = cards.find((c) => c.id === cardId);
-    if (!targetCard) return;
-    const next = reviewCard(targetCard, grade, now, practice);
-    if (!practice) setCards(prev => prev.map(c => c.id === cardId ? next : c));
+    let targetCard: VocabCard | undefined;
+    let next: VocabCard | undefined;
+    try {
+      await workspaceStorage.updateJSON<VocabCard[]>(STORAGE_KEYS.CARDS, cards, latest => {
+        targetCard = latest.find(c => c.id === cardId);
+        if (!targetCard) return latest;
+        next = reviewCard(normalizeSchedule(targetCard), grade, now, practice);
+        return practice ? latest : latest.map(c => c.id === cardId ? next! : c);
+      });
+    } catch { return; }
+    if (!targetCard || !next) return;
     const logEntry: ReviewLogRecord = {
       id: `rev-${now}-${Math.random().toString(36).slice(2, 6)}`,
       cardId,
@@ -1697,16 +1596,19 @@ export default function App() {
             )}
 
             {activeSection === 'vocabulary' && (
-              <VocabularyLibrary
-                cards={cards}
-                artworks={artworks}
-                onOpenAddModal={openAddSingleModal}
-                onOpenBulkModal={openAddBulkModal}
-                onEditCard={openEditModal}
-                onDeleteCard={handleDeleteCard}
-                onResetCardProgress={handleResetCardProgress}
-                onImportCardsJson={handleImportCardsJson}
-              />
+              <>
+                <BackupControls cards={cards} reviews={reviewLogs} />
+                <VocabularyLibrary
+                  cards={cards}
+                  artworks={artworks}
+                  onOpenAddModal={openAddSingleModal}
+                  onOpenBulkModal={openAddBulkModal}
+                  onEditCard={openEditModal}
+                  onDeleteCard={handleDeleteCard}
+                  onResetCardProgress={handleResetCardProgress}
+                  onImportCardsJson={handleImportCardsJson}
+                />
+              </>
             )}
 
             {activeSection === 'gallery' && (

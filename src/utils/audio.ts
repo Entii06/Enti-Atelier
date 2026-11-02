@@ -1,3 +1,5 @@
+import { dictionaryCache } from './dictionaryCache.ts';
+
 export type BuiltinNoiseType = 'off' | 'rain' | 'wind';
 
 let sharedAudioCtx: AudioContext | null = null;
@@ -299,19 +301,16 @@ export async function playDictionaryPronunciation(
         )}&accent=${accent}`;
 
   try {
-    const res = await fetch(safeEndpoint, { signal: controller.signal });
+    const rawBlob = await dictionaryCache.pronunciation(safeEndpoint, async () => {
+      const res = await fetch(safeEndpoint, { signal: controller.signal });
+      const contentType = (res.headers.get('content-type') || '').toLowerCase();
+      if (!res.ok || !contentType.includes('audio')) return null;
+      const blob = await res.blob();
+      return blob.size >= 256 ? blob : null;
+    }, controller.signal);
     if (controller.signal.aborted) return;
 
-    const contentType = (res.headers.get('content-type') || '').toLowerCase();
-    if (!res.ok || !contentType.includes('audio')) {
-      speakEnglish(cleanedWord, 0.94, accent);
-      return;
-    }
-
-    const rawBlob = await res.blob();
-    if (controller.signal.aborted) return;
-
-    if (rawBlob.size < 256) {
+    if (!rawBlob) {
       speakEnglish(cleanedWord, 0.94, accent);
       return;
     }
@@ -340,6 +339,7 @@ export async function playDictionaryPronunciation(
     player.onended = cleanupCurrent;
     player.onerror = () => {
       cleanupCurrent();
+      void dictionaryCache.forgetPronunciation(safeEndpoint);
       speakEnglish(cleanedWord, 0.94, accent);
     };
 
@@ -347,6 +347,9 @@ export async function playDictionaryPronunciation(
   } catch (err) {
     if ((err as { name?: string })?.name === 'AbortError') {
       return;
+    }
+    if ((err as { name?: string })?.name === 'NotSupportedError') {
+      void dictionaryCache.forgetPronunciation(safeEndpoint);
     }
     speakEnglish(cleanedWord, 0.94, accent);
   }
